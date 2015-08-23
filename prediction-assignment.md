@@ -11,11 +11,11 @@ output: html_document
 
 Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E).
 
-The data collected from accelerometers on the belt, forearm, arm, and dumbell are available at [Human Activity Recognition](http://groupware.les.inf.puc-rio.br/har) (see the section on the Weight Lifting Exercise Dataset).
+The data collected from accelerometers on the belt, forearm, arm, and dumbbell are available at [Human Activity Recognition](http://groupware.les.inf.puc-rio.br/har) (see the section on the Weight Lifting Exercise Dataset).
 
 The goal of this report is to use this dataset to predict which activity was performed at a specific point of time, ie. the values of the class variable (A, B, C, D or E) according to accelerometer measures recorded on the four different part of the body: arm, belt, dumbbell, forearm at this time.
 
-## Getting data
+## Getting the data
 
 
 ```r
@@ -39,7 +39,7 @@ table(trainingData$classe)
 ## 5580 3797 3422 3216 3607
 ```
 
-The number of class A activities are much higher then for other class acitvities.
+The number of class A activities are much higher then for other class activities.
 
 ## Preprocessing the data
 
@@ -156,7 +156,7 @@ varImp(modelFit)
 
 ## Testing the model on the training set (testing)
 
-Let's get the predictions from the testin set and compare the results with the actual data in a confusion matrix:
+Let's get the predictions from the testing set and compare the results with the actual data in a confusion matrix:
 
 ```r
 pred <- predict(modelFit, testing)
