@@ -1,0 +1,98 @@
+---
+title: "Prediction Assignment"
+author: "Stephanie W"
+date: "21/8/2015"
+output: html_document
+---
+
+```{r setup, cache = T, echo = F, message = F, warning = F, tidy = F}
+library(knitr)
+options(options(reindent.spaces = 2))
+opts_chunk$set(message = F, error = F, warning = F, fig.align = 'center', dpi = 100, tidy = F, cache = T, cache.path = '.cache/', fig.width=8, fig.path = 'figure/')
+knit_hooks$set(inline = function(x) {
+  if(is.numeric(x)){ 
+    round(x, getOption('digits'))
+  } else {
+    paste(as.character(x), collapse = ', ')
+  }
+})
+knit_hooks$set(plot = knitr:::hook_plot_html)
+```
+
+## Synopsis
+
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E).
+
+The data collected from accelerometers on the belt, forearm, arm, and dumbell are available at [Human Activity Recognition](http://groupware.les.inf.puc-rio.br/har) (see the section on the Weight Lifting Exercise Dataset).
+
+The goal of this report is to use this dataset to predict which activity was performed at a specific point of time, ie. the values of the class variable (A, B, C, D or E) according to accelerometer measures recorded on the four different part of the body: arm, belt, dumbbell, forearm at this time.
+
+## Getting data
+
+```{r}
+download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",
+              destfile="pml-training.csv", quiet=T, method="curl")
+trainingData <- read.csv("pml-training.csv", na.strings=c("NA", "#DIV/0!"))
+download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",
+              destfile="pml-testing.csv", quiet=T, method="curl")
+validData <- read.csv("pml-testing.csv", na.strings=c("NA", "#DIV/0!"))
+```
+
+
+```{r}
+table(trainingData$classe)
+```
+The number of class A activities are much higher then for other class acitvities.
+
+## Preprocessing the data
+
+After examining the summary of the training set, we decide to keep with the "cleanest" variables (without NA's or unusual values), ie. the sensors measures:
+```{r}
+colnb <- grep("^(roll_|pitch_|yaw_|gyros_|total_accel|accel_|magnet_)", names(trainingData))
+cols <- c("classe",names(trainingData)[colnb])
+newTrainingData <- trainingData[, cols]
+```
+
+
+## Building a prediction model
+
+Let's subset the data into a training and testing sets based on the `classe` variable (70% for training, 30% for testing):
+```{r}
+set.seed(1234)
+library(caret)
+inTrain<-createDataPartition(y=newTrainingData$classe, p=0.7, list=F)
+training <- newTrainingData[inTrain,]
+testing <- newTrainingData[-inTrain,]
+```
+
+We choose to use the Random Forest classification algorithm for its ability to handle large amounts of input variables.  
+Let's run the algorithm on the training data with `classe` as outcome against all predictors:
+```{r}
+library(randomForest)
+modelFit <- randomForest(training$classe~., data=training)
+print(modelFit)
+```
+
+We get an estimate of error rate $< 1\%$.
+
+## Testing the model on the training set (testing)
+
+Let's get the predictions from th testin set and compare the results with the actual data in a confusion matrix:
+```{r}
+pred <- predict(modelFit, testing)
+confusionMatrix(pred, testing$classe)
+```
+
+We get a $\simeq 99\%$ of accuracy.
+
+```{r}
+table(pred,testing$classe)
+```
+
+## Testing the model on the validation set (validData)
+
+Testing the model on the test set provided:
+```{r}
+pred <- predict(modelFit, validData)
+pred
+```
