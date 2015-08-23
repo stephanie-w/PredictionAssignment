@@ -85,7 +85,7 @@ validData &lt;- read.csv(&quot;pml-testing.csv&quot;, na.strings=c(&quot;NA&quot
 <pre><code>## 
 ##    A    B    C    D    E 
 ## 5580 3797 3422 3216 3607</code></pre>
-<p>The number of class A activities are much higher then for class acitvities.</p>
+<p>The number of class A activities are much higher then for other class acitvities.</p>
 </div>
 <div id="preprocessing-the-data" class="section level2">
 <h2>Preprocessing the data</h2>
@@ -98,34 +98,85 @@ newTrainingData &lt;- trainingData[, cols]</code></pre>
 <h2>Building a prediction model</h2>
 <p>Let’s subset the data into a training and testing sets based on the <code>classe</code> variable (70% for training, 30% for testing):</p>
 <pre class="r"><code>set.seed(1234)
-library(caret)</code></pre>
-<pre><code>## Loading required package: lattice
-## Loading required package: ggplot2</code></pre>
-<pre class="r"><code>inTrain&lt;-createDataPartition(y=newTrainingData$classe, p=0.7, list=F)
+library(caret)
+inTrain&lt;-createDataPartition(y=newTrainingData$classe, p=0.7, list=F)
 training &lt;- newTrainingData[inTrain,]
 testing &lt;- newTrainingData[-inTrain,]</code></pre>
 <p>We choose to use the Random Forest classification algorithm for its ability to handle large amounts of input variables.<br />Let’s run the algorithm on the training data with <code>classe</code> as outcome against all predictors:</p>
-<pre class="r"><code>library(randomForest)</code></pre>
-<pre><code>## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code>modelFit &lt;- randomForest(training$classe~., data=training)
+<pre class="r"><code>library(randomForest)
+modelFit &lt;- randomForest(training$classe~., data=training, importance = TRUE)
 print(modelFit)</code></pre>
 <pre><code>## 
 ## Call:
-##  randomForest(formula = training$classe ~ ., data = training) 
+##  randomForest(formula = training$classe ~ ., data = training,      importance = TRUE) 
 ##                Type of random forest: classification
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 7
 ## 
-##         OOB estimate of  error rate: 0.54%
+##         OOB estimate of  error rate: 0.58%
 ## Confusion matrix:
-##      A    B    C    D    E class.error
-## A 3902    2    0    0    2 0.001024066
-## B   10 2644    4    0    0 0.005267118
-## C    0   14 2380    2    0 0.006677796
-## D    0    0   29 2222    1 0.013321492
-## E    0    0    3    7 2515 0.003960396</code></pre>
+##      A    B    C    D    E  class.error
+## A 3903    1    0    0    2 0.0007680492
+## B   14 2641    3    0    0 0.0063957863
+## C    0   18 2375    3    0 0.0087646077
+## D    0    0   28 2222    2 0.0133214920
+## E    0    0    1    7 2517 0.0031683168</code></pre>
 <p>We get an estimate of error rate <span class="math">\(&lt; 1\%\)</span>.</p>
+<p>Let’s look at what variables were important:</p>
+<pre class="r"><code>varImp(modelFit)</code></pre>
+<pre><code>##                             A        B        C        D        E
+## roll_belt            41.06996 48.92134 47.01698 45.05319 41.93720
+## pitch_belt           30.41808 48.29613 37.51707 32.75454 31.92550
+## yaw_belt             44.42911 44.08130 40.67089 45.33420 31.68671
+## total_accel_belt     15.32222 16.00997 14.44685 14.99253 15.76384
+## gyros_belt_x         17.96367 17.62466 20.78481 14.08892 17.31150
+## gyros_belt_y         11.92380 15.59096 16.94052 15.50459 16.54711
+## gyros_belt_z         21.26921 26.27929 25.42920 22.81282 26.75095
+## accel_belt_x         15.28845 18.29187 19.27478 14.27040 14.52282
+## accel_belt_y         11.47181 15.07645 12.16711 14.42567 11.85769
+## accel_belt_z         20.51656 24.64336 25.20403 22.03631 20.24703
+## magnet_belt_x        19.27704 26.85691 25.53096 20.44830 25.16324
+## magnet_belt_y        22.90073 27.90928 25.13599 25.99200 24.02039
+## magnet_belt_z        23.49466 26.96544 24.66288 28.19092 24.08515
+## roll_arm             21.51007 31.54417 28.22076 27.58529 21.95851
+## pitch_arm            18.14704 24.32178 21.09375 20.07803 18.23434
+## yaw_arm              23.10587 26.35568 24.69591 26.71990 20.97847
+## total_accel_arm      10.44236 23.10016 21.58308 20.48390 18.19516
+## gyros_arm_x          17.77760 29.94918 24.65966 22.96875 23.72955
+## gyros_arm_y          18.89413 28.22518 25.39785 25.20090 20.03600
+## gyros_arm_z          13.19061 18.71679 12.90523 14.54802 14.56108
+## accel_arm_x          18.01343 19.75661 19.40805 23.85479 17.36273
+## accel_arm_y          17.76930 20.42120 18.03014 19.07937 18.32943
+## accel_arm_z          14.38054 21.26109 21.43720 21.30457 19.07333
+## magnet_arm_x         17.13177 17.44485 19.23764 18.30158 15.85054
+## magnet_arm_y         12.87882 16.61910 18.07148 20.45518 13.37957
+## magnet_arm_z         21.37652 24.14945 24.69151 21.65166 19.58171
+## roll_dumbbell        24.00062 26.83948 29.10526 29.56457 25.02170
+## pitch_dumbbell       11.42437 18.59333 15.80800 12.95305 13.63471
+## yaw_dumbbell         19.10943 24.08475 23.25356 22.25436 23.12977
+## total_accel_dumbbell 20.85525 22.68094 20.44229 21.00886 23.82964
+## gyros_dumbbell_x     17.67099 24.46854 23.91981 20.25889 20.17512
+## gyros_dumbbell_y     20.65771 21.42850 26.38351 19.91609 17.46169
+## gyros_dumbbell_z     19.06225 24.08440 17.03131 17.62294 15.17264
+## accel_dumbbell_x     15.80615 23.00105 19.59373 18.36573 19.60357
+## accel_dumbbell_y     26.50008 28.08714 31.43996 29.46371 27.11475
+## accel_dumbbell_z     20.93755 26.33405 23.92109 25.16854 28.86259
+## magnet_dumbbell_x    25.30723 26.43705 30.33784 26.04510 22.37983
+## magnet_dumbbell_y    33.82828 35.36703 41.60830 33.78820 30.49749
+## magnet_dumbbell_z    43.39883 37.40314 46.49971 38.75181 36.35149
+## roll_forearm         28.18683 24.65474 30.62393 22.76115 22.47700
+## pitch_forearm        31.47629 30.71980 34.91431 33.78202 30.44921
+## yaw_forearm          19.57097 19.67942 22.23909 19.99921 20.09889
+## total_accel_forearm  17.88586 20.06471 20.27454 18.81452 17.61196
+## gyros_forearm_x      10.93129 17.51828 16.42443 15.44558 15.59404
+## gyros_forearm_y      16.10846 29.72715 26.70579 25.37300 20.51600
+## gyros_forearm_z      14.70101 26.13016 21.53316 16.13218 17.21419
+## accel_forearm_x      18.89258 25.30783 25.36759 29.32884 22.47066
+## accel_forearm_y      19.19825 22.81875 24.20889 21.33293 21.89642
+## accel_forearm_z      16.78160 20.53027 23.61602 23.38745 23.52171
+## magnet_forearm_x     16.19737 21.56083 22.06641 18.56269 19.98952
+## magnet_forearm_y     23.19316 22.38651 23.97817 22.58286 19.80011
+## magnet_forearm_z     23.48409 28.82003 26.63875 28.02023 24.28016</code></pre>
 </div>
 <div id="testing-the-model-on-the-training-set-testing" class="section level2">
 <h2>Testing the model on the training set (testing)</h2>
@@ -136,42 +187,42 @@ confusionMatrix(pred, testing$classe)</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1672    5    0    0    0
-##          B    2 1133    3    0    0
-##          C    0    1 1023    3    1
-##          D    0    0    0  959    0
-##          E    0    0    0    2 1081
+##          A 1671    5    0    0    0
+##          B    2 1133    4    0    0
+##          C    0    1 1021    3    1
+##          D    1    0    1  960    1
+##          E    0    0    0    1 1080
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.9971          
-##                  95% CI : (0.9954, 0.9983)
+##                Accuracy : 0.9966          
+##                  95% CI : (0.9948, 0.9979)
 ##     No Information Rate : 0.2845          
 ##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.9963          
+##                   Kappa : 0.9957          
 ##  Mcnemar's Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9988   0.9947   0.9971   0.9948   0.9991
-## Specificity            0.9988   0.9989   0.9990   1.0000   0.9996
-## Pos Pred Value         0.9970   0.9956   0.9951   1.0000   0.9982
-## Neg Pred Value         0.9995   0.9987   0.9994   0.9990   0.9998
+## Sensitivity            0.9982   0.9947   0.9951   0.9959   0.9982
+## Specificity            0.9988   0.9987   0.9990   0.9994   0.9998
+## Pos Pred Value         0.9970   0.9947   0.9951   0.9969   0.9991
+## Neg Pred Value         0.9993   0.9987   0.9990   0.9992   0.9996
 ## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-## Detection Rate         0.2841   0.1925   0.1738   0.1630   0.1837
-## Detection Prevalence   0.2850   0.1934   0.1747   0.1630   0.1840
-## Balanced Accuracy      0.9988   0.9968   0.9980   0.9974   0.9993</code></pre>
+## Detection Rate         0.2839   0.1925   0.1735   0.1631   0.1835
+## Detection Prevalence   0.2848   0.1935   0.1743   0.1636   0.1837
+## Balanced Accuracy      0.9985   0.9967   0.9970   0.9976   0.9990</code></pre>
 <p>We get a <span class="math">\(\simeq 99\%\)</span> of accuracy.</p>
 <pre class="r"><code>table(pred,testing$classe)</code></pre>
 <pre><code>##     
 ## pred    A    B    C    D    E
-##    A 1672    5    0    0    0
-##    B    2 1133    3    0    0
-##    C    0    1 1023    3    1
-##    D    0    0    0  959    0
-##    E    0    0    0    2 1081</code></pre>
+##    A 1671    5    0    0    0
+##    B    2 1133    4    0    0
+##    C    0    1 1021    3    1
+##    D    1    0    1  960    1
+##    E    0    0    0    1 1080</code></pre>
 </div>
 <div id="testing-the-model-on-the-validation-set-validdata" class="section level2">
 <h2>Testing the model on the validation set (validData)</h2>
